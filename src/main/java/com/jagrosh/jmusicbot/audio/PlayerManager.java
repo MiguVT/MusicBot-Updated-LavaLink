@@ -31,6 +31,7 @@ import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceM
 import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager;
 import dev.lavalink.youtube.YoutubeAudioSourceManager;
+import dev.lavalink.youtube.clients.TvHtml5Embedded;
 import net.dv8tion.jda.api.entities.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,12 +47,12 @@ public class PlayerManager extends DefaultAudioPlayerManager
 {
     private final static Logger LOGGER = LoggerFactory.getLogger(PlayerManager.class);
     private final Bot bot;
-    
+
     public PlayerManager(Bot bot)
     {
         this.bot = bot;
     }
-    
+
     public void init()
     {
         TransformativeAudioSourceManager.createTransforms(bot.getConfig().getTransforms()).forEach(t -> registerSourceManager(t));
@@ -75,7 +76,7 @@ public class PlayerManager extends DefaultAudioPlayerManager
 
     private YoutubeAudioSourceManager setupYoutubeAudioSourceManager()
     {
-        YoutubeAudioSourceManager yt = new YoutubeAudioSourceManager(true);
+        YoutubeAudioSourceManager yt = new YoutubeAudioSourceManager(true, new TvHtml5Embedded());
         yt.setPlaylistPageCount(bot.getConfig().getMaxYTPlaylistPages());
 
         // OAuth2 setup
@@ -111,12 +112,12 @@ public class PlayerManager extends DefaultAudioPlayerManager
     {
         return bot;
     }
-    
+
     public boolean hasHandler(Guild guild)
     {
         return guild.getAudioManager().getSendingHandler()!=null;
     }
-    
+
     public AudioHandler setUpHandler(Guild guild)
     {
         AudioHandler handler;
