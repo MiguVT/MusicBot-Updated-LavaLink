@@ -21,29 +21,21 @@ public class SponsorBlockClient {
     }
 
     public java.util.concurrent.CompletableFuture<List<Segment>> fetchSegmentsAsync(String videoId) {
+        // Request only non-music segments from SponsorBlock
+        String url = API_URL + videoId + "&category=music_offtopic";
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(API_URL + videoId))
+            .uri(URI.create(url))
             .build();
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
                 List<Segment> segments = new ArrayList<>();
                 String body = response.body();
-                // Only skip non-music categories for music bots
-                String[] skipCategories = {"music_offtopic", "music_nonmusic", "non-music"};
                 try {
                     if (body != null && body.trim().startsWith("[")) {
                         JSONArray arr = new JSONArray(body);
                         for (int i = 0; i < arr.length(); i++) {
                             JSONObject obj = arr.getJSONObject(i);
                             String category = obj.optString("category", "unknown");
-                            boolean shouldSkip = false;
-                            for (String cat : skipCategories) {
-                                if (category.equalsIgnoreCase(cat)) {
-                                    shouldSkip = true;
-                                    break;
-                                }
-                            }
-                            if (!shouldSkip) continue;
                             JSONArray seg = obj.getJSONArray("segment");
                             double start = seg.getDouble(0);
                             double end = seg.getDouble(1);
