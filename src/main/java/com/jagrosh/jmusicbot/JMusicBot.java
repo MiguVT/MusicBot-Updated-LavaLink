@@ -44,14 +44,14 @@ import ch.qos.logback.classic.Level;
  *
  * @author John Grosh (jagrosh)
  */
-public class JMusicBot 
+public class JMusicBot
 {
     public final static Logger LOG = LoggerFactory.getLogger(JMusicBot.class);
     public final static Permission[] RECOMMENDED_PERMS = {Permission.MESSAGE_READ, Permission.MESSAGE_WRITE, Permission.MESSAGE_HISTORY, Permission.MESSAGE_ADD_REACTION,
                                 Permission.MESSAGE_EMBED_LINKS, Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_MANAGE, Permission.MESSAGE_EXT_EMOJI,
                                 Permission.VOICE_CONNECT, Permission.VOICE_SPEAK, Permission.NICKNAME_CHANGE};
     public final static GatewayIntent[] INTENTS = {GatewayIntent.DIRECT_MESSAGES, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_VOICE_STATES};
-    
+
     /**
      * @param args the command line arguments
      */
@@ -67,16 +67,16 @@ public class JMusicBot
             }
         startBot();
     }
-    
+
     private static void startBot()
     {
         // create prompt to handle startup
         Prompt prompt = new Prompt("JMusicBot");
-        
+
         // startup checks
         // OtherUtil.checkVersion(prompt);
         OtherUtil.checkJavaVersion(prompt);
-        
+
         // load config
         BotConfig config = new BotConfig(prompt);
         config.load();
@@ -87,17 +87,17 @@ public class JMusicBot
         // set log level from config
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(
                 Level.toLevel(config.getLogLevel(), Level.INFO));
-        
+
         // set up the listener
         EventWaiter waiter = new EventWaiter();
         SettingsManager settings = new SettingsManager();
         Bot bot = new Bot(waiter, config, settings);
         CommandClient client = createCommandClient(config, settings, bot);
-        
-        
+
+
         if(!prompt.isNoGUI())
         {
-            try 
+            try
             {
                 GUI gui = new GUI(bot);
                 bot.setGUI(gui);
@@ -112,7 +112,7 @@ public class JMusicBot
                         + "window, please run in nogui mode using the -Dnogui=true flag.");
             }
         }
-        
+
         // attempt to log in and start
         try
         {
@@ -120,7 +120,7 @@ public class JMusicBot
                     .enableCache(CacheFlag.MEMBER_OVERRIDES, CacheFlag.VOICE_STATE)
                     .disableCache(CacheFlag.ACTIVITY, CacheFlag.CLIENT_STATUS, CacheFlag.EMOTE, CacheFlag.ONLINE_STATUS)
                     .setActivity(config.isGameNone() ? null : Activity.playing("loading..."))
-                    .setStatus(config.getStatus()==OnlineStatus.INVISIBLE || config.getStatus()==OnlineStatus.OFFLINE 
+                    .setStatus(config.getStatus()==OnlineStatus.INVISIBLE || config.getStatus()==OnlineStatus.OFFLINE
                             ? OnlineStatus.INVISIBLE : OnlineStatus.DO_NOT_DISTURB)
                     .addEventListeners(client, waiter, new Listener(bot))
                     .setBulkDeleteSplittingEnabled(true)
@@ -136,9 +136,9 @@ public class JMusicBot
                 jda.shutdown();
                 System.exit(1);
             }
-            
+
             // other check that will just be a warning now but may be required in the future
-            // check if the user has changed the prefix and provide info about the 
+            // check if the user has changed the prefix and provide info about the
             // message content intent
             if(!"@mention".equals(config.getPrefix()))
             {
@@ -167,17 +167,17 @@ public class JMusicBot
             System.exit(1);
         }
     }
-    
+
     private static CommandClient createCommandClient(BotConfig config, SettingsManager settings, Bot bot)
     {
         // instantiate about command
         AboutCommand aboutCommand = new AboutCommand(Color.BLUE.brighter(),
-                                "a music bot that is [easy to host yourself!](https://github.com/jagrosh/MusicBot) (v" + OtherUtil.getCurrentVersion() + ")",
-                                new String[]{"High-quality music playback", "FairQueue™ Technology", "Easy to host yourself"},
+                                "a music bot that is [easy to host yourself!](https://github.com/MiguVT/MusicBot-Updated-LavaLink) (v" + OtherUtil.getCurrentVersion() + ")",
+                                new String[]{"High-quality music playback", "FairQueue™ Technology", "Easy to host yourself", "MiguBeats™ Sound"},
                                 RECOMMENDED_PERMS);
         aboutCommand.setIsAuthor(false);
         aboutCommand.setReplacementCharacter("\uD83C\uDFB6"); // 🎶
-        
+
         // set up the command client
         CommandClientBuilder cb = new CommandClientBuilder()
                 .setPrefix(config.getPrefix())
@@ -190,7 +190,7 @@ public class JMusicBot
                 .addCommands(aboutCommand,
                         new PingCommand(),
                         new SettingsCmd(bot),
-                        
+
                         new LyricsCmd(bot),
                         new NowplayingCmd(bot),
                         new PlayCmd(bot),
@@ -212,7 +212,7 @@ public class JMusicBot
                         new SkiptoCmd(bot),
                         new StopCmd(bot),
                         new VolumeCmd(bot),
-                        
+
                         new PrefixCmd(bot),
                         new QueueTypeCmd(bot),
                         new SetdjCmd(bot),
@@ -229,15 +229,15 @@ public class JMusicBot
                         new SetstatusCmd(bot),
                         new ShutdownCmd(bot)
                 );
-        
+
         // enable eval if applicable
         if(config.useEval())
             cb.addCommand(new EvalCmd(bot));
-        
+
         // set status if set in config
         if(config.getStatus() != OnlineStatus.UNKNOWN)
             cb.setStatus(config.getStatus());
-        
+
         // set game
         if(config.getGame() == null)
             cb.useDefaultGame();
@@ -245,7 +245,7 @@ public class JMusicBot
             cb.setActivity(null);
         else
             cb.setActivity(config.getGame());
-        
+
         return cb.build();
     }
 }
