@@ -27,16 +27,26 @@ public class SponsorBlockClient {
         return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(response -> {
                 List<Segment> segments = new ArrayList<>();
+                String body = response.body();
+                // Only skip non-music categories for music bots
+                String[] skipCategories = {"music_offtopic", "music_nonmusic", "non-music"};
                 try {
-                    JSONArray arr = new JSONArray(response.body());
-                    for (int i = 0; i < arr.length(); i++) {
-                        JSONObject obj = arr.getJSONObject(i);
-                        String category = obj.optString("category", "unknown");
-                        JSONArray segs = obj.getJSONArray("segments");
-                        for (int j = 0; j < segs.length(); j++) {
-                            JSONArray times = segs.getJSONArray(j);
-                            double start = times.getDouble(0);
-                            double end = times.getDouble(1);
+                    if (body != null && body.trim().startsWith("[")) {
+                        JSONArray arr = new JSONArray(body);
+                        for (int i = 0; i < arr.length(); i++) {
+                            JSONObject obj = arr.getJSONObject(i);
+                            String category = obj.optString("category", "unknown");
+                            boolean shouldSkip = false;
+                            for (String cat : skipCategories) {
+                                if (category.equalsIgnoreCase(cat)) {
+                                    shouldSkip = true;
+                                    break;
+                                }
+                            }
+                            if (!shouldSkip) continue;
+                            JSONArray seg = obj.getJSONArray("segment");
+                            double start = seg.getDouble(0);
+                            double end = seg.getDouble(1);
                             segments.add(new Segment(start, end, category));
                         }
                     }
