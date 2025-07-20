@@ -217,12 +217,18 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         votes.clear();
         manager.getBot().getNowplayingHandler().onTrackUpdate(track);
 
-        // SponsorBlock: fetch segments if YouTube track
+        // SponsorBlock: fetch segments asynchronously if YouTube track
         sponsorSegments.clear();
         currentSegmentIndex = 0;
         if (track.getSourceManager() != null && track.getSourceManager().getClass().getSimpleName().toLowerCase().contains("youtube")) {
             String videoId = track.getIdentifier();
-            sponsorSegments = sponsorBlockClient.fetchSegments(videoId);
+            sponsorBlockClient.fetchSegmentsAsync(videoId).thenAccept(segments -> {
+                // Only update if the same track is still playing
+                if (audioPlayer.getPlayingTrack() != null && audioPlayer.getPlayingTrack().getIdentifier().equals(videoId)) {
+                    sponsorSegments = segments;
+                    currentSegmentIndex = 0;
+                }
+            });
         }
     }
 
