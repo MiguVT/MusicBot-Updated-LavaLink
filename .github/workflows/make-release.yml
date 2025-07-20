@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       version_number:
-        description: 'Version Number'     
+        description: 'Version Number'
         required: true
         type: string
       info:
@@ -59,12 +59,12 @@ jobs:
           name: Version ${{ github.event.inputs.version_number }}
           draft: true
           prerelease: false
-          artifacts: "*.jar"
+          artifacts: '*.jar'
           body: |
             ${{ github.event.inputs.info }}
-            
+
             ---
             ### Setup
-            https://jmusicbot.com/setup  
-            https://jmusicbot.com/config  
-            # Download: [JMusicBot-${{ github.event.inputs.version_number }}.jar](https://github.com/jagrosh/MusicBot/releases/download/${{ github.event.inputs.version_number }}/JMusicBot-${{ github.event.inputs.version_number }}.jar)
+            https://jmusicbot.com/setup
+            https://jmusicbot.com/config
+            # Download: [JMusicBot-${{ github.event.inputs.version_number }}.jar](https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.version_number }}/JMusicBot-${{ github.event.inputs.version_number }}.jar)
