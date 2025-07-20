@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author John Grosh <john.a.grosh@gmail.com>
  */
-public class AudioHandler extends AudioEventAdapter implements AudioSendHandler 
+public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
 {
     public final static String PLAY_EMOJI  = "\u25B6"; // ▶
     public final static String PAUSE_EMOJI = "\u23F8"; // ⏸
@@ -56,13 +56,18 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
 
     private final List<AudioTrack> defaultQueue = new LinkedList<>();
     private final Set<String> votes = new HashSet<>();
-    
+
     private final PlayerManager manager;
     private final AudioPlayer audioPlayer;
     private final long guildId;
-    
+
     private AudioFrame lastFrame;
     private AbstractQueue<QueuedTrack> queue;
+
+    // SponsorBlock integration
+    private List<SponsorBlockClient.Segment> sponsorSegments = new LinkedList<>();
+    private int currentSegmentIndex = 0;
+    private SponsorBlockClient sponsorBlockClient = new SponsorBlockClient();
 
     protected AudioHandler(PlayerManager manager, Guild guild, AudioPlayer player)
     {
@@ -91,7 +96,7 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
             return 0;
         }
     }
-    
+
     public int addTrack(QueuedTrack qtrack)
     {
         if(audioPlayer.getPlayingTrack()==null)
@@ -102,12 +107,12 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         else
             return queue.add(qtrack);
     }
-    
+
     public AbstractQueue<QueuedTrack> getQueue()
     {
         return queue;
     }
-    
+
     public void stopAndClear()
     {
         queue.clear();
@@ -115,22 +120,22 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         audioPlayer.stopTrack();
         //current = null;
     }
-    
+
     public boolean isMusicPlaying(JDA jda)
     {
         return guild(jda).getSelfMember().getVoiceState().inVoiceChannel() && audioPlayer.getPlayingTrack()!=null;
     }
-    
+
     public Set<String> getVotes()
     {
         return votes;
     }
-    
+
     public AudioPlayer getPlayer()
     {
         return audioPlayer;
     }
-    
+
     public RequestMetadata getRequestMetadata()
     {
         if(audioPlayer.getPlayingTrack() == null)
@@ -138,7 +143,7 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         RequestMetadata rm = audioPlayer.getPlayingTrack().getUserData(RequestMetadata.class);
         return rm == null ? RequestMetadata.EMPTY : rm;
     }
-    
+
     public boolean playFromDefault()
     {
         if(!defaultQueue.isEmpty())
@@ -149,27 +154,27 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         Settings settings = manager.getBot().getSettingsManager().getSettings(guildId);
         if(settings==null || settings.getDefaultPlaylist()==null)
             return false;
-        
+
         Playlist pl = manager.getBot().getPlaylistLoader().getPlaylist(settings.getDefaultPlaylist());
         if(pl==null || pl.getItems().isEmpty())
             return false;
-        pl.loadTracks(manager, (at) -> 
+        pl.loadTracks(manager, (at) ->
         {
             if(audioPlayer.getPlayingTrack()==null)
                 audioPlayer.playTrack(at);
             else
                 defaultQueue.add(at);
-        }, () -> 
+        }, () ->
         {
             if(pl.getTracks().isEmpty() && !manager.getBot().getConfig().getStay())
                 manager.getBot().closeAudioConnection(guildId);
         });
         return true;
     }
-    
+
     // Audio Events
     @Override
-    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) 
+    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason)
     {
         RepeatMode repeatMode = manager.getBot().getSettingsManager().getSettings(guildId).getRepeatMode();
         // if the track ended normally, and we're in repeat mode, re-add it to the queue
@@ -181,7 +186,7 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
             else
                 queue.addAt(0, clone);
         }
-        
+
         if(queue.isEmpty())
         {
             if(!playFromDefault())
@@ -207,13 +212,21 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
     }
 
     @Override
-    public void onTrackStart(AudioPlayer player, AudioTrack track) 
+    public void onTrackStart(AudioPlayer player, AudioTrack track)
     {
         votes.clear();
         manager.getBot().getNowplayingHandler().onTrackUpdate(track);
+
+        // SponsorBlock: fetch segments if YouTube track
+        sponsorSegments.clear();
+        currentSegmentIndex = 0;
+        if (track.getSourceManager() != null && track.getSourceManager().getClass().getSimpleName().toLowerCase().contains("youtube")) {
+            String videoId = track.getIdentifier();
+            sponsorSegments = sponsorBlockClient.fetchSegments(videoId);
+        }
     }
 
-    
+
     // Formatting
     public Message getNowPlaying(JDA jda)
     {
@@ -235,11 +248,11 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
                     eb.setAuthor(FormatUtil.formatUsername(u), null, u.getEffectiveAvatarUrl());
             }
 
-            try 
+            try
             {
                 eb.setTitle(track.getInfo().title, track.getInfo().uri);
             }
-            catch(Exception e) 
+            catch(Exception e)
             {
                 eb.setTitle(track.getInfo().title);
             }
@@ -248,7 +261,7 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
             {
                 eb.setThumbnail("https://img.youtube.com/vi/"+track.getIdentifier()+"/mqdefault.jpg");
             }
-            
+
             if(track.getInfo().author != null && !track.getInfo().author.isEmpty())
                 eb.setFooter("Source: " + track.getInfo().author, null);
 
@@ -257,12 +270,12 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
                     + " "+FormatUtil.progressBar(progress)
                     + " `[" + TimeUtil.formatTime(track.getPosition()) + "/" + TimeUtil.formatTime(track.getDuration()) + "]` "
                     + FormatUtil.volumeIcon(audioPlayer.getVolume()));
-            
+
             return mb.setEmbeds(eb.build()).build();
         }
         else return null;
     }
-    
+
     public Message getNoMusicPlaying(JDA jda)
     {
         Guild guild = guild(jda);
@@ -279,10 +292,10 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
     {
         return audioPlayer.isPaused() ? PAUSE_EMOJI : PLAY_EMOJI;
     }
-    
+
     // Audio Send Handler methods
     /*@Override
-    public boolean canProvide() 
+    public boolean canProvide()
     {
         if (lastFrame == null)
             lastFrame = audioPlayer.provide();
@@ -291,9 +304,9 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
     }
 
     @Override
-    public byte[] provide20MsAudio() 
+    public byte[] provide20MsAudio()
     {
-        if (lastFrame == null) 
+        if (lastFrame == null)
             lastFrame = audioPlayer.provide();
 
         byte[] data = lastFrame != null ? lastFrame.getData() : null;
@@ -301,27 +314,46 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
 
         return data;
     }*/
-    
+
     @Override
-    public boolean canProvide() 
+    public boolean canProvide()
     {
         lastFrame = audioPlayer.provide();
+        // SponsorBlock: skip segments if needed
+        if (audioPlayer.getPlayingTrack() != null && !sponsorSegments.isEmpty()) {
+            long positionMs = audioPlayer.getPlayingTrack().getPosition();
+            while (currentSegmentIndex < sponsorSegments.size()) {
+                SponsorBlockClient.Segment seg = sponsorSegments.get(currentSegmentIndex);
+                long segStart = (long)(seg.start * 1000);
+                long segEnd = (long)(seg.end * 1000);
+                if (positionMs >= segStart && positionMs < segEnd) {
+                    audioPlayer.getPlayingTrack().setPosition(segEnd);
+                    currentSegmentIndex++;
+                    // After seeking, update position
+                    positionMs = audioPlayer.getPlayingTrack().getPosition();
+                } else if (positionMs >= segEnd) {
+                    currentSegmentIndex++;
+                } else {
+                    break;
+                }
+            }
+        }
         return lastFrame != null;
     }
 
     @Override
-    public ByteBuffer provide20MsAudio() 
+    public ByteBuffer provide20MsAudio()
     {
         return ByteBuffer.wrap(lastFrame.getData());
     }
 
     @Override
-    public boolean isOpus() 
+    public boolean isOpus()
     {
         return true;
     }
-    
-    
+
+
     // Private methods
     private Guild guild(JDA jda)
     {
