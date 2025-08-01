@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public class SeekCmd extends MusicCommand
 {
     private final static Logger LOG = LoggerFactory.getLogger("Seeking");
-    
+
     public SeekCmd(Bot bot)
     {
         super(bot);
@@ -57,7 +57,18 @@ public class SeekCmd extends MusicCommand
         }
 
 
-        if (!DJCommand.checkDJPermission(event) && playingTrack.getUserData(RequestMetadata.class).getOwner() != event.getAuthor().getIdLong())
+        // Safely get track owner for permission check
+        long trackOwnerId = 0L;
+        try {
+            Object userData = playingTrack.getUserData();
+            if (userData instanceof RequestMetadata) {
+                trackOwnerId = ((RequestMetadata) userData).getOwner();
+            }
+        } catch (Exception e) {
+            // If getUserData fails, assume no owner (trackOwnerId = 0L)
+        }
+
+        if (!DJCommand.checkDJPermission(event) && trackOwnerId != event.getAuthor().getIdLong())
         {
             event.replyError("You cannot seek **" + playingTrack.getInfo().title + "** because you didn't add it!");
             return;
@@ -80,7 +91,7 @@ public class SeekCmd extends MusicCommand
             event.replyError("Cannot seek to `" + TimeUtil.formatTime(seekMilliseconds) + "` because the current track is `" + TimeUtil.formatTime(trackDuration) + "` long!");
             return;
         }
-        
+
         try
         {
             playingTrack.setPosition(seekMilliseconds);

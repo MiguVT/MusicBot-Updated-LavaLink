@@ -140,8 +140,19 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
     {
         if(audioPlayer.getPlayingTrack() == null)
             return RequestMetadata.EMPTY;
-        RequestMetadata rm = audioPlayer.getPlayingTrack().getUserData(RequestMetadata.class);
-        return rm == null ? RequestMetadata.EMPTY : rm;
+
+        // Safely try to get RequestMetadata from userData
+        try {
+            Object userData = audioPlayer.getPlayingTrack().getUserData();
+            if (userData instanceof RequestMetadata) {
+                return (RequestMetadata) userData;
+            }
+        } catch (Exception e) {
+            // If getUserData fails (e.g., JSON parsing error), return empty
+            // Log at debug level to avoid spam
+        }
+
+        return RequestMetadata.EMPTY;
     }
 
     public boolean playFromDefault()
@@ -180,7 +191,18 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         // if the track ended normally, and we're in repeat mode, re-add it to the queue
         if(endReason==AudioTrackEndReason.FINISHED && repeatMode != RepeatMode.OFF)
         {
-            QueuedTrack clone = new QueuedTrack(track.makeClone(), track.getUserData(RequestMetadata.class));
+            // Safely get RequestMetadata for cloning
+            RequestMetadata trackMetadata = RequestMetadata.EMPTY;
+            try {
+                Object userData = track.getUserData();
+                if (userData instanceof RequestMetadata) {
+                    trackMetadata = (RequestMetadata) userData;
+                }
+            } catch (Exception e) {
+                // If getUserData fails, use empty metadata
+            }
+
+            QueuedTrack clone = new QueuedTrack(track.makeClone(), trackMetadata);
             if(repeatMode == RepeatMode.ALL)
                 queue.add(clone);
             else

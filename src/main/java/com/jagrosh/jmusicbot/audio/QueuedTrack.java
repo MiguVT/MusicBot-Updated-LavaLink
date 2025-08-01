@@ -19,7 +19,6 @@ import com.jagrosh.jmusicbot.utils.TimeUtil;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import com.jagrosh.jmusicbot.queue.Queueable;
-import net.dv8tion.jda.api.entities.User;
 
 /**
  *
@@ -33,19 +32,23 @@ public class QueuedTrack implements Queueable
     public QueuedTrack(AudioTrack track, RequestMetadata rm)
     {
         this.track = track;
-        this.track.setUserData(rm == null ? RequestMetadata.EMPTY : rm);
+        // Only set userData if it's not already set by the track implementation
+        // YouTube tracks use userData for internal token storage
+        if (track.getUserData() == null) {
+            this.track.setUserData(rm == null ? RequestMetadata.EMPTY : rm);
+        }
 
         this.requestMetadata = rm;
-        if (this.track.isSeekable() && rm != null)
+        if (this.track.isSeekable() && rm != null && rm.requestInfo != null)
             track.setPosition(rm.requestInfo.startTimestamp);
     }
-    
+
     @Override
-    public long getIdentifier() 
+    public long getIdentifier()
     {
         return requestMetadata.getOwner();
     }
-    
+
     public AudioTrack getTrack()
     {
         return track;
@@ -57,11 +60,12 @@ public class QueuedTrack implements Queueable
     }
 
     @Override
-    public String toString() 
+    public String toString()
     {
         String entry = "`[" + TimeUtil.formatTime(track.getDuration()) + "]` ";
         AudioTrackInfo trackInfo = track.getInfo();
         entry = entry + (trackInfo.uri.startsWith("http") ? "[**" + trackInfo.title + "**]("+trackInfo.uri+")" : "**" + trackInfo.title + "**");
-        return entry + " - <@" + track.getUserData(RequestMetadata.class).getOwner() + ">";
+        // Use our stored requestMetadata instead of getUserData to avoid JSON parsing conflicts
+        return entry + " - <@" + (requestMetadata != null ? requestMetadata.getOwner() : 0L) + ">";
     }
 }
