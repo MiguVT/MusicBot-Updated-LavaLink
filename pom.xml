@@ -7,15 +7,11 @@
     <packaging>jar</packaging>
 
     <repositories>
+        <!-- Chew's Maven Repo for JDA-Chewtils -->
         <repository>
-            <id>dv8tion</id>
-            <name>m2-dv8tion</name>
-            <url>https://m2.dv8tion.net/releases</url>
-        </repository>
-        <repository>
-            <id>central</id>
-            <name>bintray</name>
-            <url>https://jcenter.bintray.com</url>
+            <id>chew</id>
+            <name>m2-chew</name>
+            <url>https://m2.chew.pro/releases</url>
         </repository>
         <repository>
             <id>jitpack.io</id>
@@ -42,13 +38,15 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>4.4.1_353</version>
+            <version>5.3.0</version>
         </dependency>
-	<dependency>
-	    <groupId>com.github.Nagami-Yukki</groupId>
-	    <artifactId>JDA-Utilities</artifactId>
-	    <version>1.0</version>
-	</dependency>
+        <dependency>
+            <groupId>pw.chew</groupId>
+            <artifactId>jda-chewtils</artifactId>
+            <version>2.1</version>
+            <scope>compile</scope>
+            <type>pom</type>
+        </dependency>
         <!-- Music Dependencies -->
         <dependency>
             <groupId>dev.arbjerg</groupId>

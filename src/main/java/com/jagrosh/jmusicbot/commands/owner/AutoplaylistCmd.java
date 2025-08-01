@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.OwnerCommand;
 import com.jagrosh.jmusicbot.settings.Settings;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
@@ -27,11 +28,11 @@ import com.jagrosh.jmusicbot.settings.Settings;
 public class AutoplaylistCmd extends OwnerCommand
 {
     private final Bot bot;
-    
+
     public AutoplaylistCmd(Bot bot)
     {
         this.bot = bot;
-        this.guildOnly = true;
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
         this.name = "autoplaylist";
         this.arguments = "<name|NONE>";
         this.help = "sets the default playlist for the server";
@@ -39,7 +40,7 @@ public class AutoplaylistCmd extends OwnerCommand
     }
 
     @Override
-    public void execute(CommandEvent event) 
+    public void execute(CommandEvent event)
     {
         if(event.getArgs().isEmpty())
         {

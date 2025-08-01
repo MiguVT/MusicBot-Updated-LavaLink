@@ -21,35 +21,37 @@ import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.settings.Settings;
 import com.jagrosh.jmusicbot.audio.AudioHandler;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.exceptions.PermissionException;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
  * @author John Grosh <john.a.grosh@gmail.com>
  */
-public abstract class MusicCommand extends Command 
+public abstract class MusicCommand extends Command
 {
     protected final Bot bot;
     protected boolean bePlaying;
     protected boolean beListening;
-    
+
     public MusicCommand(Bot bot)
     {
         this.bot = bot;
-        this.guildOnly = true;
+        // Use new contexts system instead of deprecated guildOnly
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
         this.category = new Category("Music");
     }
-    
+
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         Settings settings = event.getClient().getSettingsFor(event.getGuild());
         TextChannel tchannel = settings.getTextChannel(event.getGuild());
-        if(tchannel!=null && !event.getTextChannel().equals(tchannel))
+        if(tchannel!=null && !event.getChannel().equals(tchannel))
         {
-            try 
+            try
             {
                 event.getMessage().delete().queue();
             } catch(PermissionException ignore){}
@@ -64,11 +66,12 @@ public abstract class MusicCommand extends Command
         }
         if(beListening)
         {
-            VoiceChannel current = event.getGuild().getSelfMember().getVoiceState().getChannel();
+            VoiceChannel current = event.getGuild().getSelfMember().getVoiceState().getChannel() != null ?
+                event.getGuild().getSelfMember().getVoiceState().getChannel().asVoiceChannel() : null;
             if(current==null)
                 current = settings.getVoiceChannel(event.getGuild());
             GuildVoiceState userState = event.getMember().getVoiceState();
-            if(!userState.inVoiceChannel() || userState.isDeafened() || (current!=null && !userState.getChannel().equals(current)))
+            if(!userState.inAudioChannel() || userState.isDeafened() || (current!=null && !userState.getChannel().equals(current)))
             {
                 event.replyError("You must be listening in "+(current==null ? "a voice channel" : current.getAsMention())+" to use that!");
                 return;
@@ -81,22 +84,22 @@ public abstract class MusicCommand extends Command
                 return;
             }
 
-            if(!event.getGuild().getSelfMember().getVoiceState().inVoiceChannel())
+            if(!event.getGuild().getSelfMember().getVoiceState().inAudioChannel())
             {
-                try 
+                try
                 {
-                    event.getGuild().getAudioManager().openAudioConnection(userState.getChannel());
+                    event.getGuild().getAudioManager().openAudioConnection(userState.getChannel().asVoiceChannel());
                 }
-                catch(PermissionException ex) 
+                catch(PermissionException ex)
                 {
                     event.reply(event.getClient().getError()+" I am unable to connect to "+userState.getChannel().getAsMention()+"!");
                     return;
                 }
             }
         }
-        
+
         doCommand(event);
     }
-    
+
     public abstract void doCommand(CommandEvent event);
 }

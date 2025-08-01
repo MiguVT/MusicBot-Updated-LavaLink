@@ -22,12 +22,13 @@ import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.OwnerCommand;
 import com.jagrosh.jmusicbot.utils.OtherUtil;
 import net.dv8tion.jda.api.entities.Icon;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
  * @author John Grosh <john.a.grosh@gmail.com>
  */
-public class SetavatarCmd extends OwnerCommand 
+public class SetavatarCmd extends OwnerCommand
 {
     public SetavatarCmd(Bot bot)
     {
@@ -35,11 +36,11 @@ public class SetavatarCmd extends OwnerCommand
         this.help = "sets the avatar of the bot";
         this.arguments = "<url>";
         this.aliases = bot.getConfig().getAliases(this.name);
-        this.guildOnly = false;
+        this.contexts = new InteractionContextType[]{};
     }
-    
+
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         String url;
         if(event.getArgs().isEmpty())
@@ -58,7 +59,7 @@ public class SetavatarCmd extends OwnerCommand
         {
             try {
             event.getSelfUser().getManager().setAvatar(Icon.from(s)).queue(
-                    v -> event.reply(event.getClient().getSuccess()+" Successfully changed avatar."), 
+                    v -> event.reply(event.getClient().getSuccess()+" Successfully changed avatar."),
                     t -> event.reply(event.getClient().getError()+" Failed to set avatar."));
             } catch(IOException e) {
                 event.reply(event.getClient().getError()+" Could not load from provided URL.");

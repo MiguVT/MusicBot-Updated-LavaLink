@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.OwnerCommand;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
@@ -32,11 +33,11 @@ public class SetstatusCmd extends OwnerCommand
         this.help = "sets the status the bot displays";
         this.arguments = "<status>";
         this.aliases = bot.getConfig().getAliases(this.name);
-        this.guildOnly = false;
+        this.contexts = new InteractionContextType[]{};
     }
-    
+
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         try {
             OnlineStatus status = OnlineStatus.fromKey(event.getArgs());
