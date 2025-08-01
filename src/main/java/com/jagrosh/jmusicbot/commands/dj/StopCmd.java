@@ -24,7 +24,7 @@ import com.jagrosh.jmusicbot.commands.DJCommand;
  *
  * @author John Grosh <john.a.grosh@gmail.com>
  */
-public class StopCmd extends DJCommand 
+public class StopCmd extends DJCommand
 {
     public StopCmd(Bot bot)
     {
@@ -36,8 +36,11 @@ public class StopCmd extends DJCommand
     }
 
     @Override
-    public void doCommand(CommandEvent event) 
+    public void doCommand(CommandEvent event)
     {
+        // Log stop command disconnect
+        org.slf4j.LoggerFactory.getLogger("StopCmd").warn("VOICE DISCONNECT: Stop command executed by {} in guild {}", event.getAuthor().getName(), event.getGuild().getName());
+
         AudioHandler handler = (AudioHandler)event.getGuild().getAudioManager().getSendingHandler();
         handler.stopAndClear();
         event.getGuild().getAudioManager().closeAudioConnection();

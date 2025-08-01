@@ -46,11 +46,11 @@ public class Bot
     private final NowplayingHandler nowplaying;
     private final AloneInVoiceHandler aloneInVoiceHandler;
     private final YoutubeOauth2TokenHandler youTubeOauth2TokenHandler;
-    
+
     private boolean shuttingDown = false;
     private JDA jda;
     private GUI gui;
-    
+
     public Bot(EventWaiter waiter, BotConfig config, SettingsManager settings)
     {
         this.waiter = waiter;
@@ -67,37 +67,37 @@ public class Bot
         this.aloneInVoiceHandler = new AloneInVoiceHandler(this);
         this.aloneInVoiceHandler.init();
     }
-    
+
     public BotConfig getConfig()
     {
         return config;
     }
-    
+
     public SettingsManager getSettingsManager()
     {
         return settings;
     }
-    
+
     public EventWaiter getWaiter()
     {
         return waiter;
     }
-    
+
     public ScheduledExecutorService getThreadpool()
     {
         return threadpool;
     }
-    
+
     public PlayerManager getPlayerManager()
     {
         return players;
     }
-    
+
     public PlaylistLoader getPlaylistLoader()
     {
         return playlists;
     }
-    
+
     public NowplayingHandler getNowplayingHandler()
     {
         return nowplaying;
@@ -112,19 +112,24 @@ public class Bot
     {
         return youTubeOauth2TokenHandler;
     }
-    
+
     public JDA getJDA()
     {
         return jda;
     }
-    
+
     public void closeAudioConnection(long guildId)
     {
         Guild guild = jda.getGuildById(guildId);
         if(guild!=null)
+        {
+            // Log who's calling closeAudioConnection with full stack trace
+            Exception stackTrace = new Exception("closeAudioConnection called for guild " + guildId + " (" + guild.getName() + ")");
+            org.slf4j.LoggerFactory.getLogger("Bot").warn("VOICE DISCONNECT TRIGGERED", stackTrace);
             threadpool.submit(() -> guild.getAudioManager().closeAudioConnection());
+        }
     }
-    
+
     public void resetGame()
     {
         Activity game = config.getGame()==null || config.getGame().getName().equalsIgnoreCase("none") ? null : config.getGame();
@@ -140,7 +145,7 @@ public class Bot
         threadpool.shutdownNow();
         if(jda.getStatus()!=JDA.Status.SHUTTING_DOWN)
         {
-            jda.getGuilds().stream().forEach(g -> 
+            jda.getGuilds().stream().forEach(g ->
             {
                 g.getAudioManager().closeAudioConnection();
                 AudioHandler ah = (AudioHandler)g.getAudioManager().getSendingHandler();
@@ -161,7 +166,7 @@ public class Bot
     {
         this.jda = jda;
     }
-    
+
     public void setGUI(GUI gui)
     {
         this.gui = gui;

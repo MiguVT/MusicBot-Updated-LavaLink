@@ -76,6 +76,11 @@ public class AloneInVoiceHandler
             }
 
             LOGGER.warn("Guild {} ({}) has been alone for {} seconds, disconnecting!", guildId, guild.getName(), secondsAlone);
+
+            // Log AloneInVoiceHandler disconnect with stack trace
+            Exception stackTrace = new Exception("AloneInVoiceHandler disconnecting guild " + guildId + " (" + guild.getName() + ")");
+            LOGGER.warn("VOICE DISCONNECT TRIGGERED BY AloneInVoiceHandler", stackTrace);
+
             ((AudioHandler) guild.getAudioManager().getSendingHandler()).stopAndClear();
             guild.getAudioManager().closeAudioConnection();
 

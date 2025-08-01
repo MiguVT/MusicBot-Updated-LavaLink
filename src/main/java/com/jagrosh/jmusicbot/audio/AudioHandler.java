@@ -177,7 +177,11 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         }, () ->
         {
             if(pl.getTracks().isEmpty() && !manager.getBot().getConfig().getStay())
+            {
+                // Log playFromDefault disconnect
+                org.slf4j.LoggerFactory.getLogger("AudioHandler").warn("VOICE DISCONNECT: playFromDefault callback - playlist empty and stayinchannel=false for guild {}", guildId);
                 manager.getBot().closeAudioConnection(guildId);
+            }
         });
         return true;
     }
@@ -209,7 +213,11 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
             {
                 manager.getBot().getNowplayingHandler().onTrackUpdate(null);
                 if(!manager.getBot().getConfig().getStay())
+                {
+                    // Log onTrackEnd disconnect
+                    org.slf4j.LoggerFactory.getLogger("AudioHandler").warn("VOICE DISCONNECT: onTrackEnd - queue empty, no default playlist, and stayinchannel=false for guild {}", guildId);
                     manager.getBot().closeAudioConnection(guildId);
+                }
                 // unpause, in the case when the player was paused and the track has been skipped.
                 // this is to prevent the player being paused next time it's being used.
                 player.setPaused(false);
