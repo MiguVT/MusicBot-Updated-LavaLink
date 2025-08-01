@@ -20,17 +20,18 @@ import javax.script.ScriptEngineManager;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.OwnerCommand;
-import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
  * @author John Grosh (jagrosh)
  */
-public class EvalCmd extends OwnerCommand 
+public class EvalCmd extends OwnerCommand
 {
     private final Bot bot;
     private final String engine;
-    
+
     public EvalCmd(Bot bot)
     {
         this.bot = bot;
@@ -38,11 +39,11 @@ public class EvalCmd extends OwnerCommand
         this.help = "evaluates nashorn code";
         this.aliases = bot.getConfig().getAliases(this.name);
         this.engine = bot.getConfig().getEvalEngine();
-        this.guildOnly = false;
+        this.contexts = new InteractionContextType[]{};
     }
-    
+
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         ScriptEngine se = new ScriptEngineManager().getEngineByName(engine);
         if(se == null)
@@ -61,11 +62,11 @@ public class EvalCmd extends OwnerCommand
         try
         {
             event.reply(event.getClient().getSuccess()+" Evaluated Successfully:\n```\n"+se.eval(event.getArgs())+" ```");
-        } 
+        }
         catch(Exception e)
         {
             event.reply(event.getClient().getError()+" An exception was thrown:\n```\n"+e+" ```");
         }
     }
-    
+
 }

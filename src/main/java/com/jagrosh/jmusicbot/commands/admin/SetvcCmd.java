@@ -22,13 +22,13 @@ import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.AdminCommand;
 import com.jagrosh.jmusicbot.settings.Settings;
 import com.jagrosh.jmusicbot.utils.FormatUtil;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
 /**
  *
  * @author John Grosh <john.a.grosh@gmail.com>
  */
-public class SetvcCmd extends AdminCommand 
+public class SetvcCmd extends AdminCommand
 {
     public SetvcCmd(Bot bot)
     {
@@ -37,9 +37,9 @@ public class SetvcCmd extends AdminCommand
         this.arguments = "<channel|NONE>";
         this.aliases = bot.getConfig().getAliases(this.name);
     }
-    
+
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         if(event.getArgs().isEmpty())
         {

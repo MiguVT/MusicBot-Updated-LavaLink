@@ -20,6 +20,7 @@ import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.DJCommand;
 import com.jagrosh.jmusicbot.settings.RepeatMode;
 import com.jagrosh.jmusicbot.settings.Settings;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
@@ -34,12 +35,12 @@ public class RepeatCmd extends DJCommand
         this.help = "re-adds music to the queue when finished";
         this.arguments = "[off|all|single]";
         this.aliases = bot.getConfig().getAliases(this.name);
-        this.guildOnly = true;
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
     }
-    
+
     // override musiccommand's execute because we don't actually care where this is used
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         String args = event.getArgs();
         RepeatMode value;

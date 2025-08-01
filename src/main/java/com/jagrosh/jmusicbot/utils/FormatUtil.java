@@ -18,9 +18,9 @@ package com.jagrosh.jmusicbot.utils;
 import com.jagrosh.jmusicbot.audio.RequestMetadata.UserInfo;
 import java.util.List;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 
 /**
  *
@@ -60,7 +60,7 @@ public class FormatUtil {
                 str+="▬";
         return str;
     }
-    
+
     public static String volumeIcon(int volume)
     {
         if(volume == 0)
@@ -71,7 +71,7 @@ public class FormatUtil {
             return "\uD83D\uDD09"; // 🔉
         return "\uD83D\uDD0A";     // 🔊
     }
-    
+
     public static String listOfTChannels(List<TextChannel> list, String query)
     {
         String out = " Multiple text channels found matching \""+query+"\":";
@@ -81,7 +81,7 @@ public class FormatUtil {
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;
     }
-    
+
     public static String listOfVChannels(List<VoiceChannel> list, String query)
     {
         String out = " Multiple voice channels found matching \""+query+"\":";
@@ -91,7 +91,7 @@ public class FormatUtil {
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;
     }
-    
+
     public static String listOfRoles(List<Role> list, String query)
     {
         String out = " Multiple roles found matching \""+query+"\":";
@@ -101,7 +101,7 @@ public class FormatUtil {
             out+="\n**And "+(list.size()-6)+" more...**";
         return out;
     }
-    
+
     public static String filter(String input)
     {
         return input.replace("\u202E","")

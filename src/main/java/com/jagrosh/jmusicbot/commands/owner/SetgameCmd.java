@@ -19,6 +19,7 @@ import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.OwnerCommand;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
@@ -32,16 +33,16 @@ public class SetgameCmd extends OwnerCommand
         this.help = "sets the game the bot is playing";
         this.arguments = "[action] [game]";
         this.aliases = bot.getConfig().getAliases(this.name);
-        this.guildOnly = false;
+        this.contexts = new InteractionContextType[]{};
         this.children = new OwnerCommand[]{
             new SetlistenCmd(),
             new SetstreamCmd(),
             new SetwatchCmd()
         };
     }
-    
+
     @Override
-    protected void execute(CommandEvent event) 
+    protected void execute(CommandEvent event)
     {
         String title = event.getArgs().toLowerCase().startsWith("playing") ? event.getArgs().substring(7).trim() : event.getArgs();
         try
@@ -55,7 +56,7 @@ public class SetgameCmd extends OwnerCommand
             event.reply(event.getClient().getError()+" The game could not be set!");
         }
     }
-    
+
     private class SetstreamCmd extends OwnerCommand
     {
         private SetstreamCmd()
@@ -64,7 +65,7 @@ public class SetgameCmd extends OwnerCommand
             this.aliases = new String[]{"twitch","streaming"};
             this.help = "sets the game the bot is playing to a stream";
             this.arguments = "<username> <game>";
-            this.guildOnly = false;
+            this.contexts = new InteractionContextType[]{};
         }
 
         @Override
@@ -88,7 +89,7 @@ public class SetgameCmd extends OwnerCommand
             }
         }
     }
-    
+
     private class SetlistenCmd extends OwnerCommand
     {
         private SetlistenCmd()
@@ -97,7 +98,7 @@ public class SetgameCmd extends OwnerCommand
             this.aliases = new String[]{"listening"};
             this.help = "sets the game the bot is listening to";
             this.arguments = "<title>";
-            this.guildOnly = false;
+            this.contexts = new InteractionContextType[]{};
         }
 
         @Override
@@ -118,7 +119,7 @@ public class SetgameCmd extends OwnerCommand
             }
         }
     }
-    
+
     private class SetwatchCmd extends OwnerCommand
     {
         private SetwatchCmd()
@@ -127,7 +128,7 @@ public class SetgameCmd extends OwnerCommand
             this.aliases = new String[]{"watching"};
             this.help = "sets the game the bot is watching";
             this.arguments = "<title>";
-            this.guildOnly = false;
+            this.contexts = new InteractionContextType[]{};
         }
 
         @Override

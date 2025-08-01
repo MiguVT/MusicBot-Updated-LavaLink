@@ -19,12 +19,13 @@ import java.util.List;
 import com.jagrosh.jdautilities.command.CommandEvent;
 import com.jagrosh.jmusicbot.Bot;
 import com.jagrosh.jmusicbot.commands.MusicCommand;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 
 /**
  *
  * @author John Grosh <john.a.grosh@gmail.com>
  */
-public class PlaylistsCmd extends MusicCommand 
+public class PlaylistsCmd extends MusicCommand
 {
     public PlaylistsCmd(Bot bot)
     {
@@ -32,13 +33,13 @@ public class PlaylistsCmd extends MusicCommand
         this.name = "playlists";
         this.help = "shows the available playlists";
         this.aliases = bot.getConfig().getAliases(this.name);
-        this.guildOnly = true;
+        this.contexts = new InteractionContextType[]{InteractionContextType.GUILD};
         this.beListening = false;
         this.beListening = false;
     }
-    
+
     @Override
-    public void doCommand(CommandEvent event) 
+    public void doCommand(CommandEvent event)
     {
         if(!bot.getPlaylistLoader().folderExists())
             bot.getPlaylistLoader().createFolder();
