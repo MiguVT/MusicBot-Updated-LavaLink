@@ -11,10 +11,10 @@
     </appender>
 
     <!-- Enable trace logging for JDA -->
-    <logger name="net.dv8tion.jda" level="TRACE"/>
+    <!-- <logger name="net.dv8tion.jda" level="TRACE"/> -->
 
     <root level="INFO">
         <appender-ref ref="Simple"/>
     </root>
-    
+
 </configuration>
