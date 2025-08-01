@@ -30,6 +30,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import com.jagrosh.jmusicbot.settings.Settings;
 import com.jagrosh.jmusicbot.utils.FormatUtil;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
@@ -56,6 +58,9 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
 
     private final List<AudioTrack> defaultQueue = new LinkedList<>();
     private final Set<String> votes = new HashSet<>();
+
+    // Track metadata mapping to avoid userData conflicts with YouTube tracks
+    private final Map<String, RequestMetadata> trackMetadata = new ConcurrentHashMap<>();
 
     private final PlayerManager manager;
     private final AudioPlayer audioPlayer;
@@ -99,6 +104,11 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
 
     public int addTrack(QueuedTrack qtrack)
     {
+        // Store metadata separately to avoid userData conflicts
+        if (qtrack.getRequestMetadata() != null) {
+            trackMetadata.put(qtrack.getTrack().getIdentifier(), qtrack.getRequestMetadata());
+        }
+
         if(audioPlayer.getPlayingTrack()==null)
         {
             audioPlayer.playTrack(qtrack.getTrack());
@@ -141,21 +151,10 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         if(audioPlayer.getPlayingTrack() == null)
             return RequestMetadata.EMPTY;
 
-        // Safely try to get RequestMetadata from userData
-        try {
-            Object userData = audioPlayer.getPlayingTrack().getUserData();
-            if (userData instanceof RequestMetadata) {
-                return (RequestMetadata) userData;
-            }
-        } catch (Exception e) {
-            // If getUserData fails (e.g., JSON parsing error), return empty
-            // Log at debug level to avoid spam
-        }
-
-        return RequestMetadata.EMPTY;
-    }
-
-    public boolean playFromDefault()
+        // Get metadata from our safe mapping instead of userData
+        RequestMetadata metadata = trackMetadata.get(audioPlayer.getPlayingTrack().getIdentifier());
+        return metadata != null ? metadata : RequestMetadata.EMPTY;
+    }    public boolean playFromDefault()
     {
         if(!defaultQueue.isEmpty())
         {
@@ -191,15 +190,10 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         // if the track ended normally, and we're in repeat mode, re-add it to the queue
         if(endReason==AudioTrackEndReason.FINISHED && repeatMode != RepeatMode.OFF)
         {
-            // Safely get RequestMetadata for cloning
-            RequestMetadata trackMetadata = RequestMetadata.EMPTY;
-            try {
-                Object userData = track.getUserData();
-                if (userData instanceof RequestMetadata) {
-                    trackMetadata = (RequestMetadata) userData;
-                }
-            } catch (Exception e) {
-                // If getUserData fails, use empty metadata
+            // Get metadata from our safe mapping
+            RequestMetadata trackMetadata = this.trackMetadata.get(track.getIdentifier());
+            if (trackMetadata == null) {
+                trackMetadata = RequestMetadata.EMPTY;
             }
 
             QueuedTrack clone = new QueuedTrack(track.makeClone(), trackMetadata);
@@ -225,6 +219,11 @@ public class AudioHandler extends AudioEventAdapter implements AudioSendHandler
         {
             QueuedTrack qt = queue.pull();
             player.playTrack(qt.getTrack());
+        }
+
+        // Clean up metadata for finished track to prevent memory leaks
+        if (track != null) {
+            trackMetadata.remove(track.getIdentifier());
         }
     }
 

@@ -32,13 +32,11 @@ public class QueuedTrack implements Queueable
     public QueuedTrack(AudioTrack track, RequestMetadata rm)
     {
         this.track = track;
-        // Only set userData if it's not already set by the track implementation
-        // YouTube tracks use userData for internal token storage
-        if (track.getUserData() == null) {
-            this.track.setUserData(rm == null ? RequestMetadata.EMPTY : rm);
-        }
-
+        // Never set userData on YouTube tracks to avoid JSON parsing conflicts
+        // YouTube tracks use userData internally for token storage
+        // Store our metadata separately in the requestMetadata field
         this.requestMetadata = rm;
+
         if (this.track.isSeekable() && rm != null && rm.requestInfo != null)
             track.setPosition(rm.requestInfo.startTimestamp);
     }

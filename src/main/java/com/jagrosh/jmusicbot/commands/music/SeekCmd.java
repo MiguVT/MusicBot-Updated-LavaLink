@@ -57,16 +57,9 @@ public class SeekCmd extends MusicCommand
         }
 
 
-        // Safely get track owner for permission check
-        long trackOwnerId = 0L;
-        try {
-            Object userData = playingTrack.getUserData();
-            if (userData instanceof RequestMetadata) {
-                trackOwnerId = ((RequestMetadata) userData).getOwner();
-            }
-        } catch (Exception e) {
-            // If getUserData fails, assume no owner (trackOwnerId = 0L)
-        }
+        // Get track owner safely through the AudioHandler
+        RequestMetadata metadata = handler.getRequestMetadata();
+        long trackOwnerId = metadata.getOwner();
 
         if (!DJCommand.checkDJPermission(event) && trackOwnerId != event.getAuthor().getIdLong())
         {
