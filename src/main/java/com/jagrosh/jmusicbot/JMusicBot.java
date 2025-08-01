@@ -37,7 +37,6 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ch.qos.logback.classic.Level;
 
 /**
  *
@@ -83,9 +82,13 @@ public class JMusicBot
             return;
         LOG.info("Loaded config from " + config.getConfigLocation());
 
-        // set log level from config
-        ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(
-                Level.toLevel(config.getLogLevel(), Level.INFO));
+        // set log level from config - JDA 5 compatible version
+        try {
+            ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+            rootLogger.setLevel(ch.qos.logback.classic.Level.toLevel(config.getLogLevel(), ch.qos.logback.classic.Level.INFO));
+        } catch (ClassCastException e) {
+            LOG.warn("Unable to set log level - logback not available: " + e.getMessage());
+        }
 
         // set up the listener
         EventWaiter waiter = new EventWaiter();
