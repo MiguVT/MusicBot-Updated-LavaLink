@@ -36,9 +36,9 @@
     <dependencies>
         <!-- Discord Dependencies -->
         <dependency>
-            <groupId>net.dv8tion</groupId>
+            <groupId>com.github.discord-jda</groupId>
             <artifactId>JDA</artifactId>
-            <version>5.6.1</version>
+            <version>db5edfd</version>
         </dependency>
         <dependency>
             <groupId>pw.chew</groupId>
