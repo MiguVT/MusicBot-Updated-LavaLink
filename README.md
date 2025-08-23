@@ -1,3 +1,5 @@
+### I personally use [Vocard](https://docs.vocard.xyz/), this repo exist as a legacy music bot.
+
 ## Unofficial Unofficial JMusicBot update (Forked from: https://github.com/xPrinny/MusicBot)
 ## Unofficial JMusicBot update (Forked from: https://github.com/d-pacheco/MusicBot)
 Compiled using Github Actions
